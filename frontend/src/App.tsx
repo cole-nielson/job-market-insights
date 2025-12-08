@@ -94,7 +94,7 @@ function App() {
             Ask anything about the job market
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Explore 15,000+ LinkedIn job postings using natural language.
+            Explore 120,000+ LinkedIn job postings using natural language.
             Ask about salaries, companies, industries, and trends.
           </p>
         </div>

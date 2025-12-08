@@ -7,8 +7,9 @@ from pathlib import Path
 from contextlib import contextmanager
 from typing import Any, List, Dict, Tuple
 
-# Database path - use sampled version for smaller deployment size
-DB_PATH = Path(__file__).parent.parent / "data" / "linkedin_jobs_sampled.db"
+# Database path - full database for deployment
+# Note: Database not included in git repo - download from Kaggle or run scripts/create_database.py
+DB_PATH = Path(__file__).parent.parent / "data" / "linkedin_jobs.db"
 
 
 @contextmanager

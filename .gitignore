@@ -9,8 +9,8 @@ venv/
 node_modules/
 dist/
 
-# Data - keep sampled, ignore full
-data/linkedin_jobs.db
+# Data - database hosted separately, not in git
+data/*.db
 data/postings.csv
 data/companies/
 data/jobs/
