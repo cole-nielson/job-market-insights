@@ -11,6 +11,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 MODEL = "gpt-5-mini-2025-08-07"
 
+# Token limits for reasoning model - needs higher limits to account for
+# internal reasoning tokens that are consumed before generating visible output
+SQL_GENERATION_TOKENS = 1500
+RESPONSE_FORMATTING_TOKENS = 2500
+
 
 def generate_sql(question: str, schema: str) -> str:
     """
@@ -48,10 +53,14 @@ SELECT 'This question cannot be answered with the available data.' as message"""
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question}
         ],
-        max_completion_tokens=500
+        max_completion_tokens=SQL_GENERATION_TOKENS
     )
 
-    sql = response.choices[0].message.content.strip()
+    sql = response.choices[0].message.content
+    if not sql:
+        raise ValueError("LLM returned empty SQL response")
+
+    sql = sql.strip()
 
     # Clean up any markdown formatting if present
     if sql.startswith("```"):
@@ -92,10 +101,14 @@ Generate a corrected SQL query that fixes this error. Return ONLY the SQL query 
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": question}
         ],
-        max_completion_tokens=500
+        max_completion_tokens=SQL_GENERATION_TOKENS
     )
 
-    sql = response.choices[0].message.content.strip()
+    sql = response.choices[0].message.content
+    if not sql:
+        raise ValueError("LLM returned empty SQL response on retry")
+
+    sql = sql.strip()
 
     # Clean up any markdown formatting if present
     if sql.startswith("```"):
@@ -158,7 +171,12 @@ Provide a natural language response summarizing these results."""
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ],
-        max_completion_tokens=800
+        max_completion_tokens=RESPONSE_FORMATTING_TOKENS
     )
 
-    return response.choices[0].message.content.strip()
+    content = response.choices[0].message.content
+    if not content:
+        # Fallback if LLM returns empty content
+        return f"Found {len(results)} results for your query."
+
+    return content.strip()
