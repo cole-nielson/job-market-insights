@@ -78,7 +78,7 @@ EXAMPLE_QUERIES = [
 ]
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def root():
     """Health check endpoint."""
     return {"status": "healthy", "service": "Job Market Insights API"}
