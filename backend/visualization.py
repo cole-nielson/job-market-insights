@@ -130,44 +130,45 @@ def detect_visualization(
 
         return VisualizationResult(config=VisualizationConfig(type="none"))
 
-    # Check for 2-column case (text + numeric)
-    if col_count == 2:
-        col1, col2 = columns[0], columns[1]
+    # Find text and numeric columns
+    text_cols = [c for c in columns if is_text_column(data, c)]
+    num_cols = [c for c in columns if is_numeric_column(data, c)]
 
-        # Determine which is text and which is numeric
-        text_col = None
-        num_col = None
+    # If we have at least one text column and one numeric column, we can chart
+    if text_cols and num_cols:
+        label_col = text_cols[0]
+        # Prefer count columns over percentage columns for chart values
+        value_col = num_cols[0]
+        for nc in num_cols:
+            nc_lower = nc.lower()
+            if 'count' in nc_lower or 'total' in nc_lower or 'num' in nc_lower:
+                value_col = nc
+                break
 
-        if is_text_column(data, col1) and is_numeric_column(data, col2):
-            text_col, num_col = col1, col2
-        elif is_text_column(data, col2) and is_numeric_column(data, col1):
-            text_col, num_col = col2, col1
-
-        if text_col and num_col:
-            # 2-8 rows -> pie chart (good for distributions)
-            if 2 <= row_count <= 8:
-                return VisualizationResult(
-                    config=VisualizationConfig(
-                        type="pie",
-                        label_key=text_col,
-                        y_key=num_col
-                    )
+        # 2-8 rows -> pie chart (good for distributions)
+        if 2 <= row_count <= 8:
+            return VisualizationResult(
+                config=VisualizationConfig(
+                    type="pie",
+                    label_key=label_col,
+                    y_key=value_col
                 )
-            # 2-20 rows -> bar chart (good for ranked lists)
-            elif row_count <= 20:
-                return VisualizationResult(
-                    config=VisualizationConfig(
-                        type="bar",
-                        x_key=text_col,
-                        y_key=num_col
-                    )
+            )
+        # 9-20 rows -> bar chart (good for ranked lists)
+        elif row_count <= 20:
+            return VisualizationResult(
+                config=VisualizationConfig(
+                    type="bar",
+                    x_key=label_col,
+                    y_key=value_col
                 )
+            )
 
-    # More than 20 rows or complex multi-column data -> table
-    if row_count > 20 or col_count > 2:
+    # More than 20 rows -> table
+    if row_count > 20:
         return VisualizationResult(config=VisualizationConfig(type="table"))
 
-    # Fallback for 2+ rows with 2 columns that aren't text+numeric
+    # Fallback for data that couldn't be charted
     if row_count >= 2:
         return VisualizationResult(config=VisualizationConfig(type="table"))
 

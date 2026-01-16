@@ -30,6 +30,38 @@ const COLORS = [
   "#f97316", // orange
 ];
 
+/** Format column name: EXPERIENCE_LEVEL -> Experience Level */
+function formatColumnName(col: string): string {
+  return col
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .replace(/Pct$/, "%")
+    .replace(/Id$/, "ID");
+}
+
+/** Format value for display */
+function formatValue(value: unknown, columnName: string): string {
+  if (value === null || value === undefined) return "";
+
+  const colLower = columnName.toLowerCase();
+
+  if (typeof value === "number") {
+    // Percentage columns
+    if (colLower.includes("pct") || colLower.includes("percent")) {
+      return `${value.toFixed(1)}%`;
+    }
+    // Large numbers get commas
+    if (Number.isInteger(value)) {
+      return value.toLocaleString();
+    }
+    // Decimals
+    return value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+
+  return String(value);
+}
+
 export function DataChart({ data, columns, visualization }: DataChartProps) {
   if (visualization.type === "none" || !data || data.length === 0) {
     return null;
@@ -95,6 +127,7 @@ function BarChartView({
               fontSize: "12px",
             }}
             labelStyle={{ fontWeight: 500 }}
+            formatter={(value) => (value as number).toLocaleString()}
           />
           <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
         </BarChart>
@@ -150,6 +183,7 @@ function PieChartView({
               borderRadius: "6px",
               fontSize: "12px",
             }}
+            formatter={(value) => (value as number).toLocaleString()}
           />
           <Legend />
         </PieChart>
@@ -178,9 +212,9 @@ function TableView({
               {columns.map((col) => (
                 <th
                   key={col}
-                  className="px-3 py-2 text-left text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wider"
+                  className="px-3 py-2 text-left text-xs font-medium text-slate-600 dark:text-slate-400 tracking-wider"
                 >
-                  {col}
+                  {formatColumnName(col)}
                 </th>
               ))}
             </tr>
@@ -193,7 +227,7 @@ function TableView({
                     key={col}
                     className="px-3 py-2 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap"
                   >
-                    {String(row[col] ?? "")}
+                    {formatValue(row[col], col)}
                   </td>
                 ))}
               </tr>
@@ -203,7 +237,7 @@ function TableView({
       </div>
       {hasMore && (
         <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
-          Showing first 50 of {data.length} rows
+          Showing first 50 of {data.length.toLocaleString()} rows
         </div>
       )}
     </div>
