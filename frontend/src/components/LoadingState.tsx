@@ -15,7 +15,7 @@ export function LoadingState() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentStep((prev) => (prev < STEPS.length - 1 ? prev + 1 : prev));
-    }, 1200);
+    }, 2200);
     return () => clearInterval(timer);
   }, []);
 
