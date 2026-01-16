@@ -114,21 +114,25 @@ async def query(request: QueryRequest):
 
     result = process_query(request.question)
 
-    # Detect visualization type
-    viz_config = detect_visualization(result.raw_results, result.columns)
+    # Detect visualization type (may transform data for pivoted single-row results)
+    viz_result = detect_visualization(result.raw_results, result.columns)
+
+    # Use transformed data if available, otherwise use original
+    chart_data = viz_result.data if viz_result.data is not None else result.raw_results
+    chart_columns = viz_result.columns if viz_result.columns is not None else result.columns
 
     return QueryResponse(
         success=result.success,
         response=result.response,
         sql=result.sql,
         error=result.error,
-        data=result.raw_results,
-        columns=result.columns,
+        data=chart_data,
+        columns=chart_columns,
         visualization=VisualizationConfigModel(
-            type=viz_config.type,
-            x_key=viz_config.x_key,
-            y_key=viz_config.y_key,
-            label_key=viz_config.label_key
+            type=viz_result.config.type,
+            x_key=viz_result.config.x_key,
+            y_key=viz_result.config.y_key,
+            label_key=viz_result.config.label_key
         )
     )
 
