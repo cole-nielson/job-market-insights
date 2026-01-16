@@ -17,25 +17,29 @@ export function SearchBar({ query, loading, onQueryChange, onSubmit }: SearchBar
   };
 
   return (
-    <Card className="mb-6 shadow-lg border-0">
-      <CardContent className="pt-6">
+    <Card className="mb-6 shadow-lg border-0 overflow-hidden">
+      <CardContent className="p-4">
         <form onSubmit={handleSubmit} className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="e.g., What are the top skills for data science roles?"
+              placeholder="Ask a question about the job market..."
               value={query}
               onChange={(e) => onQueryChange(e.target.value)}
-              className="pl-10 h-12 text-base"
+              className="pl-10 h-11 text-base border-slate-200 focus:border-primary"
               disabled={loading}
             />
           </div>
-          <Button type="submit" size="lg" disabled={loading || !query.trim()}>
+          <Button
+            type="submit"
+            disabled={loading || !query.trim()}
+            className="h-11 px-6"
+          >
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Analyzing...
+                Analyzing
               </>
             ) : (
               "Ask"

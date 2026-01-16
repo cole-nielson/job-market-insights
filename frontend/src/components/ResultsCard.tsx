@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Code, ChevronDown, ChevronUp } from "lucide-react";
+import { Code, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { QueryResponse } from "@/types";
 
 interface ResultsCardProps {
@@ -13,29 +13,29 @@ export function ResultsCard({ result, onReset }: ResultsCardProps) {
   const [showSql, setShowSql] = useState(false);
 
   return (
-    <>
-      <Card className={`border-0 shadow-lg ${result.success ? "" : "border-destructive/50"}`}>
-        <CardHeader className="pb-3">
+    <div className="space-y-4">
+      <Card className="border-0 shadow-lg overflow-hidden">
+        <CardHeader className="pb-3 border-b bg-slate-50/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {result.success ? (
-                <div className="h-2 w-2 rounded-full bg-green-500" />
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
               ) : (
-                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <XCircle className="h-4 w-4 text-red-500" />
               )}
-              <CardTitle className="text-lg">
+              <span className="font-medium">
                 {result.success ? "Results" : "Error"}
-              </CardTitle>
+              </span>
             </div>
             {result.sql && result.success && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowSql(!showSql)}
-                className="text-xs"
+                className="text-xs h-8"
               >
                 <Code className="h-3.5 w-3.5 mr-1.5" />
-                {showSql ? "Hide SQL" : "Show SQL"}
+                {showSql ? "Hide SQL" : "View SQL"}
                 {showSql ? (
                   <ChevronUp className="h-3.5 w-3.5 ml-1" />
                 ) : (
@@ -44,26 +44,28 @@ export function ResultsCard({ result, onReset }: ResultsCardProps) {
               </Button>
             )}
           </div>
-          {showSql && result.sql && (
-            <div className="mt-3 p-3 bg-slate-900 rounded-md overflow-x-auto">
-              <code className="text-sm text-slate-100 whitespace-pre-wrap font-mono">
-                {result.sql}
-              </code>
-            </div>
-          )}
         </CardHeader>
-        <CardContent>
-          <CardDescription className="text-base text-foreground whitespace-pre-wrap leading-relaxed">
+
+        {showSql && result.sql && (
+          <div className="px-6 py-4 bg-slate-900 border-b">
+            <code className="text-sm text-slate-100 whitespace-pre-wrap font-mono leading-relaxed">
+              {result.sql}
+            </code>
+          </div>
+        )}
+
+        <CardContent className="pt-4">
+          <p className="text-[15px] text-slate-700 whitespace-pre-wrap leading-relaxed">
             {result.response}
-          </CardDescription>
+          </p>
         </CardContent>
       </Card>
 
-      <div className="text-center mt-6">
-        <Button variant="outline" onClick={onReset}>
+      <div className="text-center">
+        <Button variant="outline" onClick={onReset} className="h-9">
           Ask another question
         </Button>
       </div>
-    </>
+    </div>
   );
 }
