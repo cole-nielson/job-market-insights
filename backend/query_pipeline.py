@@ -16,6 +16,7 @@ class QueryResult:
     sql: str
     error: Optional[str] = None
     raw_results: Optional[List[Dict[str, Any]]] = None
+    columns: Optional[List[str]] = None
 
 
 def process_query(question: str) -> QueryResult:
@@ -95,5 +96,6 @@ def process_query(question: str) -> QueryResult:
         success=True,
         response=response,
         sql=sql,
-        raw_results=results
+        raw_results=results,
+        columns=columns
     )

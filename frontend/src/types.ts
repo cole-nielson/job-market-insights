@@ -1,8 +1,18 @@
+export interface VisualizationConfig {
+  type: "bar" | "pie" | "table" | "none";
+  x_key?: string;
+  y_key?: string;
+  label_key?: string;
+}
+
 export interface QueryResponse {
   success: boolean;
   response: string;
   sql: string;
   error: string | null;
+  data?: Record<string, unknown>[];
+  columns?: string[];
+  visualization?: VisualizationConfig;
 }
 
 export interface ExampleQuery {

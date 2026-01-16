@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Code, ChevronDown, ChevronUp, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { DataChart } from "@/components/DataChart";
 import type { QueryResponse } from "@/types";
 
 interface ResultsCardProps {
@@ -70,6 +71,16 @@ export function ResultsCard({ result, onReset }: ResultsCardProps) {
           <p className="text-[15px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
             {result.response}
           </p>
+          {result.visualization &&
+            result.visualization.type !== "none" &&
+            result.data &&
+            result.columns && (
+              <DataChart
+                data={result.data}
+                columns={result.columns}
+                visualization={result.visualization}
+              />
+            )}
         </CardContent>
       </Card>
 

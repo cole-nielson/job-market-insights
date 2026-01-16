@@ -3,7 +3,7 @@ FastAPI application for NL-to-SQL job market insights.
 """
 
 import os
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from query_pipeline import process_query
+from visualization import detect_visualization
 
 app = FastAPI(
     title="Job Market Insights API",
@@ -35,12 +36,23 @@ class QueryRequest(BaseModel):
     question: str
 
 
+class VisualizationConfigModel(BaseModel):
+    """Configuration for data visualization."""
+    type: str  # "bar", "pie", "table", "none"
+    x_key: Optional[str] = None
+    y_key: Optional[str] = None
+    label_key: Optional[str] = None
+
+
 class QueryResponse(BaseModel):
     """Response body for query endpoint."""
     success: bool
     response: str
     sql: str
     error: Optional[str] = None
+    data: Optional[List[Dict[str, Any]]] = None
+    columns: Optional[List[str]] = None
+    visualization: Optional[VisualizationConfigModel] = None
 
 
 class ExampleQuery(BaseModel):
@@ -102,11 +114,22 @@ async def query(request: QueryRequest):
 
     result = process_query(request.question)
 
+    # Detect visualization type
+    viz_config = detect_visualization(result.raw_results, result.columns)
+
     return QueryResponse(
         success=result.success,
         response=result.response,
         sql=result.sql,
-        error=result.error
+        error=result.error,
+        data=result.raw_results,
+        columns=result.columns,
+        visualization=VisualizationConfigModel(
+            type=viz_config.type,
+            x_key=viz_config.x_key,
+            y_key=viz_config.y_key,
+            label_key=viz_config.label_key
+        )
     )
 
 
