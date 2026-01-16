@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { SearchBar } from "@/components/SearchBar";
@@ -12,6 +13,16 @@ function App() {
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<QueryResponse | null>(null);
   const [loading, setLoading] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+  }, [darkMode]);
 
   const handleSubmit = async (question: string) => {
     if (!question.trim()) return;
@@ -51,8 +62,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 flex flex-col">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950 flex flex-col transition-colors duration-300">
+      <Header darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)} />
 
       <main className="container mx-auto px-4 py-8 max-w-3xl flex-1">
         <HeroSection />
@@ -64,15 +75,17 @@ function App() {
           onSubmit={handleSubmit}
         />
 
-        {!result && !loading && (
-          <ExampleQueries onExampleClick={handleExampleClick} />
-        )}
+        <AnimatePresence mode="wait">
+          {!result && !loading && (
+            <ExampleQueries onExampleClick={handleExampleClick} />
+          )}
 
-        {loading && <LoadingState />}
+          {loading && <LoadingState />}
 
-        {result && !loading && (
-          <ResultsCard result={result} onReset={handleReset} />
-        )}
+          {result && !loading && (
+            <ResultsCard result={result} onReset={handleReset} />
+          )}
+        </AnimatePresence>
       </main>
 
       <Footer />
