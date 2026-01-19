@@ -3,7 +3,7 @@ Rule-based visualization detection for query results.
 Purely deterministic - no LLM calls.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 
 
@@ -42,38 +42,6 @@ def is_text_column(data: List[Dict[str, Any]], column: str) -> bool:
     return False
 
 
-def is_numeric_value(val: Any) -> bool:
-    """Check if a value is numeric."""
-    return isinstance(val, (int, float)) and not isinstance(val, bool)
-
-
-def pivot_single_row(
-    data: List[Dict[str, Any]],
-    columns: List[str]
-) -> Tuple[List[Dict[str, Any]], List[str]]:
-    """
-    Pivot a single row with multiple numeric columns into multiple rows.
-
-    E.g., {entry_pct: 30, senior_pct: 40} becomes:
-    [{"category": "entry", "value": 30}, {"category": "senior", "value": 40}]
-    """
-    row = data[0]
-    pivoted = []
-
-    for col in columns:
-        val = row.get(col)
-        if is_numeric_value(val):
-            # Clean up column name for display
-            label = col.replace('_pct', '').replace('_percent', '')
-            label = label.replace('_count', '').replace('_level', '')
-            label = label.replace('_', ' ').title()
-            pivoted.append({"category": label, "value": val})
-
-    if len(pivoted) >= 2:
-        return pivoted, ["category", "value"]
-    return data, columns
-
-
 def detect_visualization(
     data: Optional[List[Dict[str, Any]]],
     columns: Optional[List[str]]
@@ -82,10 +50,9 @@ def detect_visualization(
     Detect the best visualization type for the given data.
 
     Rules:
-    - No data or single value -> "none"
-    - Single row with 2+ numeric columns -> pivot and show as pie/bar
+    - No data or single row -> "none" (text is sufficient)
     - 2 cols (text + numeric), 2-8 rows -> "pie"
-    - 2 cols (text + numeric), 2-20 rows -> "bar"
+    - 2 cols (text + numeric), 9-20 rows -> "bar"
     - >20 rows or complex data -> "table"
 
     Args:
@@ -102,32 +69,9 @@ def detect_visualization(
     row_count = len(data)
     col_count = len(columns)
 
-    # Single value case (1 row, 1 column)
-    if row_count == 1 and col_count == 1:
-        return VisualizationResult(config=VisualizationConfig(type="none"))
-
-    # Single row with multiple numeric columns - try to pivot
-    if row_count == 1 and col_count >= 2:
-        # Count numeric columns
-        row = data[0]
-        numeric_cols = [c for c in columns if is_numeric_value(row.get(c))]
-
-        # If we have 2+ numeric columns, pivot them
-        if len(numeric_cols) >= 2:
-            pivoted_data, pivoted_cols = pivot_single_row(data, columns)
-            if len(pivoted_data) >= 2:
-                viz_type = "pie" if len(pivoted_data) <= 8 else "bar"
-                return VisualizationResult(
-                    config=VisualizationConfig(
-                        type=viz_type,
-                        label_key="category" if viz_type == "pie" else None,
-                        x_key="category" if viz_type == "bar" else None,
-                        y_key="value"
-                    ),
-                    data=pivoted_data,
-                    columns=pivoted_cols
-                )
-
+    # Single row results - no chart needed, text response is sufficient
+    # This avoids nonsensical charts like comparing salary ($139k) vs count (16)
+    if row_count == 1:
         return VisualizationResult(config=VisualizationConfig(type="none"))
 
     # Find text and numeric columns
